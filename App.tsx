@@ -8,7 +8,7 @@ import { generateHistoricalImage } from './services/geminiService';
 import { ScreenSaver } from './components/ScreenSaver';
 import { ERAS } from './constants';
 
-const { ipcRenderer } = window.require('electron');
+//const { ipcRenderer } = window.require('electron');
 const CLOUDINARY_CLOUD_NAME = "dniredeim";
 const IDLE_TIMEOUT = 30000; // 30 seconds
 
@@ -119,7 +119,7 @@ const App: React.FC = () => {
 
         if (response.status === 404) {
           console.log('[Cloudinary Sync] No featured images found on cloud. Clearing local cache...');
-          await ipcRenderer.invoke('sync-featured-images', []);
+          //   await ipcRenderer.invoke('sync-featured-images', []);
           return;
         }
 
@@ -130,10 +130,10 @@ const App: React.FC = () => {
 
         const data = await response.json();
         const allFeaturedImages = data.resources || [];
-        
+
         // Filter: Only include images that belong to this project's folder
-        const projectFolder = 'Clarion-Bayer-Samurai-Event';
-        const cloudinaryImages = allFeaturedImages.filter((img: any) => 
+        const projectFolder = 'chuck-e-cheese-photobooth';
+        const cloudinaryImages = allFeaturedImages.filter((img: any) =>
           img.public_id.startsWith(`${projectFolder}/`)
         );
 
@@ -145,9 +145,9 @@ const App: React.FC = () => {
           url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v${img.version}/${img.public_id}.${img.format}`
         }));
 
-        const result = await ipcRenderer.invoke('sync-featured-images', imageData);
-        console.log('[Cloudinary Sync] Process complete:', result);
-        setIsSyncing(false);
+        //   const result = await ipcRenderer.invoke('sync-featured-images', imageData);
+        //   console.log('[Cloudinary Sync] Process complete:', result);
+        //   setIsSyncing(false);
       } catch (err: any) {
         console.warn('[Cloudinary Sync] Failed:', err.message);
         setIsSyncing(false);

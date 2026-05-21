@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { EraData } from '../types';
 import { ERAS } from '../constants';
 
-const { ipcRenderer } = window.require('electron');
+//const { ipcRenderer } = window.require('electron');
 
 const CFG = {
   CARD_W: 1.0,
@@ -48,9 +48,9 @@ const radialGlowTexture = (() => {
   const ctx = canvas.getContext('2d');
   if (ctx) {
     const gradient = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
-    gradient.addColorStop(0, 'rgba(0, 255, 255, 1)'); 
+    gradient.addColorStop(0, 'rgba(0, 255, 255, 1)');
     gradient.addColorStop(0.4, 'rgba(0, 255, 255, 0.4)');
-    gradient.addColorStop(1, 'rgba(0, 255, 255, 0)'); 
+    gradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 128, 128);
   }
@@ -251,6 +251,7 @@ export const ScreenSaver: React.FC<{ onDismiss: (era: EraData) => void }> = ({ o
 
   useEffect(() => {
     const loadImages = async () => {
+      /*
       try {
         const { files } = await ipcRenderer.invoke('get-featured-info');
         if (files && files.length > 0) setImages(files);
@@ -259,13 +260,14 @@ export const ScreenSaver: React.FC<{ onDismiss: (era: EraData) => void }> = ({ o
         console.warn('Failed to load featured images:', err);
         setImages([]);
       }
+      */
     };
     loadImages();
 
     const handleInteraction = () => {
       if (isTransitioningRef.current) return;
       isTransitioningRef.current = true;
-      
+
       // Select random era and dismiss
       const eraIndex = Math.floor(Math.random() * ERAS.length);
       onDismiss(ERAS[eraIndex]);

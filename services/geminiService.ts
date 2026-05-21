@@ -13,7 +13,7 @@ const getAiClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-const DASHBOARD_API_URL = "https://ai-photobooth-dashboard.vercel.app/api/projects/87c136f7-f75a-430c-b652-40f75bd1997c/generate";
+const DASHBOARD_API_URL = "https://ai-photobooth-dashboard.vercel.app/api/projects/0f71cbcd-ef2d-4213-a3db-94fe7da6a805/generate";
 
 /**
  * Increments the generated images count on the dashboard
@@ -88,7 +88,7 @@ export const generateHistoricalImage = async (
   }
 
   if (faceData.childCount > 0) {
-    clothingParts.push(`the ${faceData.childCount > 1 ? 'children' : 'child'} MUST ONLY wear traditional Japanese-style robes with subtle glowing accents`);
+    clothingParts.push(`the ${faceData.childCount > 1 ? 'children' : 'child'} MUST ONLY wear a modern, custom Chuck E. Cheese t-shirt (deep purple body, vibrant green sleeve bands, and a green collar, with a large, iconic yellow-green 'C' logo in the center) and classic blue jeans`);
   }
   const clothingDescription = clothingParts.join(", ");
 
@@ -96,29 +96,39 @@ export const generateHistoricalImage = async (
   const randomLighting = LIGHTING_STYLES[Math.floor(Math.random() * LIGHTING_STYLES.length)];
 
   // 4. Construct Unified Prompt
-  const prompt = `Reimagine ${subjectDescription} as heroic mystical warriors in a cinematic Japanese Dojo at night.
-  
-  CORE VISUAL THEME: 
-  - ${era.name}. 
-  - ${era.promptInstructions}.
-  
-  STYLE & ATMOSPHERE: 
-  - Dark, moody, and atmospheric setting. 
-  - Authentic Dojo elements: Tatami flooring, shoji screen windows, and subtle wooden textures.
-  - LIGHTING: ${randomLighting}
- 
-  SUBJECT DETAILS:
-  - CLOTHING (MANDATORY TRANSFORMATION): You MUST ABSOLUTELY ERASE and DISCARD all original clothing and accessories from the source image. COMPLETELY REPLACE the subjects' outfits. Every subject MUST ONLY wear: ${clothingDescription}. Ensure NO TRACE of the original garment/style remains visible.
-  - CRITICAL IDENTITY LOCK: Maintain the EXACT facial features, bone structure, and skin tone of ALL persons in the reference image. NO facial morphing or alterations allowed. Each person's face must be rendered identical to the source.
-  - Keep the original poses exactly, but render all subjects entirely in the new specified wardrobe.
-  - Each warrior MUST be holding their unique weapon: the mystical cyan feather blade with its glowing electric blue spine.
-  
-  ENVIRONMENT:
-  - ${era.description}. 
-  - Ensure the environment feels clean and grounded, focusing on the architectural beauty and atmospheric lighting of the traditional Dojo.
-  - Ethereal glowing particles and soft blue light wisps should be visible in the air around the mystical weapon.
+  // 4. Construct Unified Prompt
+  const prompt = `Create an ultra-high detail, professional, premium cinematic 3D CGI group portrait. The absolute primary focus and dominant subject of the entire image MUST be ${subjectDescription} standing happily shoulder-to-shoulder with 2-3 iconic Chuck E. Cheese characters, formatted as an intimate, close-up friendly group photo.
 
-  ${IDENTITY_PRESERVATION_GUIDE}`;
+  CORE PORTRAIT COMPOSITION (MAIN FOCUS):
+  - COMPOSITION: A tight, intimate, mid-shot close-up group portrait where the human subject and the characters stand extremely close as best friends. The characters must dominate the frame, occupying approximately 70% of the visual space, framing the human subject who is the central focus.
+  - POSES & INTERACTION: Chuck E. Cheese (the grey mouse) stands on the left, smiling happily with a hand resting friendly on the user's shoulder or standing right beside him. Helen Henny stands immediately behind him, beautifully framing him. Mr. Munch stands on the right foreground/shoulder-to-shoulder, making a friendly thumbs-up or happy gesture.
+  - CINEMATIC BOKEH FRAMING: The entire background environment must be rendered in a deep, beautiful, artistic photographic soft-focus blur (dreamy background depth of field / bokeh). The background elements must serve strictly as secondary scenic framing so that the hyper-detailed characters and human subject POP in sharp, high-fidelity, crystal-clear focus.
+
+  SCENIC BACKGROUND BLEND (SOFT-FOCUS FRAME):
+  - BACKGROUND SCENE: ${era.name}. ${era.promptInstructions}. ${era.description}.
+  - US FLAG & ZIPLINE: The United States (US) flag and the metallic zipline arcing overhead should be beautifully integrated into the background, gently softened by the photographic bokeh blur.
+  - SKY & GROUND: A seamless horizontal transition from the warm golden sunset Giza plateau on the left to the deep blue night Manhattan skyline on the right. The stone pavement ground is wet, dark, and glossy, reflecting the colorful sky lighting, sunset, and fireworks.
+
+  CHARACTERS & SUBJECTS STYLE (PIXAR 3D CGI REALISM):
+  - CHUCK E. CHEESE MASCOTS (CRITICAL BRAND LOCK): You MUST include the three official characters (Chuck E. Cheese, Helen Henny, Mr. Munch). They MUST be rendered as high-fidelity, cinematic 3D CGI animated feature-film characters (Pixar, Disney, or Unreal Engine 5 level path-traced renders) with realistic, hyper-detailed organic shaders and micro-textures.
+    * Chuck E. Cheese: Ultra-fine, short grey fur made of millions of individually-rendered hair strands that catch the light, large glossy green glass eyes with deep iris patterns, realistic whiskers, and a friendly smile. Wears a detailed purple fabric crewneck shirt with green trim and a yellow-green "C" logo.
+    * Helen Henny: Covered in layered, soft, highly-detailed realistic yellow feathers with visible individual feather shafts and fine barbules. Short orange beak with organic matte texture, stylish blonde feathered hair tied with a purple bow, and expressive blue eyes. Wears a high-quality purple dress.
+    * Mr. Munch: Covered in long, shaggy, fluffy purple fur with realistic organic clumping. Big bulbous yellow nose with a soft-touch matte texture, large glossy green-yellow eyes, and an open happy mouth. Wears an orange fabric t-shirt with a green "M" logo.
+  - CLOTHING & TRANSFORMATION: You MUST ABSOLUTELY ERASE and DISCARD all original clothing from the source image. COMPLETELY REPLACE the subjects' outfits. Every human subject MUST ONLY wear: ${clothingDescription} and blue jeans. Ensure clothing fabric shows a distinct, high-resolution woven PBR textile pattern, detailed stitching on seams, and natural physical folds.
+  - CRITICAL IDENTITY LOCK: Maintain the EXACT facial features, bone structure, and skin tone of ALL persons in the reference image. NO facial morphing or alterations allowed. Each person's face must be human, photorealistic, and 100% identical to the source, perfectly integrated into the volumetric lighting of the scene.
+
+  LIGHTING & ATMOSPHERE:
+  - LIGHTING STYLE: ${randomLighting}
+  - DRAMATIC DUAL-LIGHTING: A warm, intense golden sunset hour light from the left side of the scene casts brilliant amber and gold rim highlights across the left side of the user's hair and the left side of all characters' fur, feathers, and clothes. Cool deep blue twilight and colorful firework explosions from the right cast beautiful blue, purple, and multi-colored rim highlights across their right sides.
+  - MAGICAL LIGHT PATH: A thin, glowing magenta and purple neon energy trail arcing overhead casts a soft ambient glow down onto their hair, shoulders, and heads.
+
+  ${IDENTITY_PRESERVATION_GUIDE}
+
+  MANDATORY NEGATIVE RULES (DO NOT GENERATE):
+  * no cheap foam mascot costume, no cosplay, no humans in animal suits, no theme park actors, no physical mascot performers
+  * no flat cartoon, no 2D illustration, no anime style, no cel shading, no low-poly rendering, no plastic-like skin, no vinyl skin
+  * no altered facial structure, no distorted anatomy, no hairstyle changes, no warped eyes
+  * no characters riding the zipline`;
 
   console.log("------------------- GENERATED PROMPT -------------------");
   console.log(prompt);
@@ -134,10 +144,11 @@ export const generateHistoricalImage = async (
   ];
 
   const requestConfig: any = {
-    temperature: 0.3,
+    temperature: 0.5,
     // @ts-ignore
     imageConfig: {
       aspectRatio: "2:3",
+      resolution: '1K'
     },
     safetySettings: safetySettings
   };
@@ -145,7 +156,7 @@ export const generateHistoricalImage = async (
   try {
     // 4. Send to Gemini
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-3.1-flash-image-preview',
       config: requestConfig,
       contents: [
         {

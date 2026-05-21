@@ -78,10 +78,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ imageSrc, rawImage, 
 
         const formData = new FormData();
         formData.append('image', blob, 'result.png');
-        formData.append('folder', 'Clarion-Bayer-Samurai-Event');
+        formData.append('folder', 'chuck-e-cheese-photobooth');
         formData.append('metadata', JSON.stringify({
-          event: 'Clarion-Bayer-Samurai-Event',
-          photobooth_id: 'Clarion-Bayer-Samurai-Event',
+          event: 'Chuck-E-Cheese-Photobooth',
+          photobooth_id: 'Chuck-E-Cheese-Photobooth',
           era: era.name,
           prompt: prompt
         }));
@@ -134,7 +134,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ imageSrc, rawImage, 
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = imageSrc;
-    link.download = `Clarion-Bayer-Samurai-Event-${era.id}-${Date.now()}.png`;
+    link.download = `chuck-e-cheese-photobooth-${era.id}-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
