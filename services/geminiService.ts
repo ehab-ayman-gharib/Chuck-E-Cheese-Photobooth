@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { EraData, FaceDetectionResult } from '../types';
-import { MALE_WARDROBE_STYLES, FEMALE_WARDROBE_STYLES, IDENTITY_PRESERVATION_GUIDE, LIGHTING_STYLES } from '../constants';
+import { MALE_WARDROBE_STYLES, FEMALE_WARDROBE_STYLES, COMPANION_CHARACTERS, CHUCK_E_CHEESE, getIdentityPreservationGuide, LIGHTING_STYLES, EGYPT_LANDMARKS, USA_LANDMARKS } from '../constants';
 
 let lastMaleWardrobeIndex = -1;
 let lastFemaleWardrobeIndex = -1;
@@ -66,68 +66,56 @@ export const generateHistoricalImage = async (
     subjectDescription = "a group of " + parts.join(', ').replace(/, ([^,]*)$/, ' and $1');
   }
 
-  // 2. Select Wardrobe per subject type for variety with anti-consecutive repetition
-  const clothingParts: string[] = [];
-
-  if (faceData.maleCount > 0) {
-    let maleIndex;
-    do {
-      maleIndex = Math.floor(Math.random() * MALE_WARDROBE_STYLES.length);
-    } while (maleIndex === lastMaleWardrobeIndex && MALE_WARDROBE_STYLES.length > 1);
-    lastMaleWardrobeIndex = maleIndex;
-    clothingParts.push(`the ${faceData.maleCount > 1 ? 'men' : 'man'} MUST ONLY wear ${MALE_WARDROBE_STYLES[maleIndex]}`);
-  }
-
-  if (faceData.femaleCount > 0) {
-    let femaleIndex;
-    do {
-      femaleIndex = Math.floor(Math.random() * FEMALE_WARDROBE_STYLES.length);
-    } while (femaleIndex === lastFemaleWardrobeIndex && FEMALE_WARDROBE_STYLES.length > 1);
-    lastFemaleWardrobeIndex = femaleIndex;
-    clothingParts.push(`the ${faceData.femaleCount > 1 ? 'women' : 'woman'} MUST ONLY wear ${FEMALE_WARDROBE_STYLES[femaleIndex]}`);
-  }
-
-  if (faceData.childCount > 0) {
-    clothingParts.push(`the ${faceData.childCount > 1 ? 'children' : 'child'} MUST ONLY wear a modern, custom Chuck E. Cheese t-shirt (deep purple body, vibrant green sleeve bands, and a green collar, with a large, iconic yellow-green 'C' logo in the center) and classic blue jeans`);
-  }
-  const clothingDescription = clothingParts.join(", ");
+  // 2. Select Wardrobe - Preserving the user's original outfit as-is
+  const clothingDescription = "the user's original clothing from the reference image, preserved exactly without any changes, modifications, or replacements";
 
   // 3. Select Lighting Variant
   const randomLighting = LIGHTING_STYLES[Math.floor(Math.random() * LIGHTING_STYLES.length)];
+  const randomEgyptLandmark = EGYPT_LANDMARKS[Math.floor(Math.random() * EGYPT_LANDMARKS.length)];
+  const randomUsaLandmark = USA_LANDMARKS[Math.floor(Math.random() * USA_LANDMARKS.length)];
 
-  // 4. Construct Unified Prompt
-  // 4. Construct Unified Prompt
-  const prompt = `Create an ultra-high detail, professional, premium cinematic 3D CGI group portrait. The absolute primary focus and dominant subject of the entire image MUST be ${subjectDescription} standing happily shoulder-to-shoulder with 2-3 iconic Chuck E. Cheese characters, formatted as an intimate, close-up friendly group photo.
+  // 4. Select Random Companions
+  const shuffledCompanions = [...COMPANION_CHARACTERS].sort(() => 0.5 - Math.random());
+  const selectedCompanions = shuffledCompanions.slice(0, 2);
+  const identityPreservationGuide = getIdentityPreservationGuide(selectedCompanions);
+  const allCharacters = [CHUCK_E_CHEESE, ...selectedCompanions];
+  const characterNames = allCharacters.map(c => c.name).join(', ');
+
+  const posesText = allCharacters.map(c => c.pose).join(' ');
+  const descriptionsText = allCharacters.map(c => `    * ${c.name}: ${c.description}`).join('\n');
+  const attiresText = allCharacters.map(c => c.attire).join('; ');
+
+  // 5. Construct Unified Prompt
+  const prompt = `Generate a breathtaking, ultra-high-budget, cinematic 3D CGI masterpiece (Unreal Engine 5 path-traced rendering style). The absolute primary focus and dominant subject of the entire image MUST be ${subjectDescription} standing shoulder-to-shoulder with 3 iconic Chuck E. Cheese characters, formatted as a dynamic, closely-framed friendly group portrait.
 
   CORE PORTRAIT COMPOSITION (MAIN FOCUS):
-  - COMPOSITION: A tight, intimate, mid-shot close-up group portrait where the human subject and the characters stand extremely close as best friends. The characters must dominate the frame, occupying approximately 70% of the visual space, framing the human subject who is the central focus.
-  - POSES & INTERACTION: Chuck E. Cheese (the grey mouse) stands on the left, smiling happily with a hand resting friendly on the user's shoulder or standing right beside him. Helen Henny stands immediately behind him, beautifully framing him. Mr. Munch stands on the right foreground/shoulder-to-shoulder, making a friendly thumbs-up or happy gesture.
-  - CINEMATIC BOKEH FRAMING: The entire background environment must be rendered in a deep, beautiful, artistic photographic soft-focus blur (dreamy background depth of field / bokeh). The background elements must serve strictly as secondary scenic framing so that the hyper-detailed characters and human subject POP in sharp, high-fidelity, crystal-clear focus.
+  - COMPOSITION: A beautiful, dynamic group shot showing the human subjects and the characters standing shoulder-to-shoulder as best friends. Frame the subjects closely (e.g. from the waist up) to strongly emphasize their faces, expressions, and interactions. The characters must dominate the frame, framing the human subject who is the central focus.
+  - POSES & INTERACTION: ${posesText}
+  - NATURAL HEIGHTS & PROPORTIONS: All subjects must be rendered with perfect anatomically proportional human body scales, natural leg-to-torso ratios, and realistic adult heights. The human subjects must stand at their natural human height relative to their head sizes. Absolutely avoid shrunken, dwarfed, or short-legged body structures for humans. The mascot characters must have natural heights matching average adult human height (shoulder-to-shoulder with the human).
+  - SHARP BACKGROUND FOCUS: The entire background environment must be rendered in crystal-clear, sharp focus with an infinite depth of field. The background elements must be highly detailed, vivid, and fully visible without any bokeh, soft-focus, or blur.
 
   SCENIC BACKGROUND BLEND (SOFT-FOCUS FRAME):
-  - BACKGROUND SCENE: ${era.name}. ${era.promptInstructions}. ${era.description}.
-  - US FLAG & ZIPLINE: The United States (US) flag and the metallic zipline arcing overhead should be beautifully integrated into the background, gently softened by the photographic bokeh blur.
-  - SKY & GROUND: A seamless horizontal transition from the warm golden sunset Giza plateau on the left to the deep blue night Manhattan skyline on the right. The stone pavement ground is wet, dark, and glossy, reflecting the colorful sky lighting, sunset, and fireworks.
+  - BACKGROUND SCENE: ${era.name}. ${era.promptInstructions.replace('[EGYPT_LANDMARK]', randomEgyptLandmark).replace('[USA_LANDMARK]', randomUsaLandmark)}. ${era.description}.
+  - US FLAG & ZIPLINE: The United States (US) flag and the metallic zipline arcing overhead should be beautifully integrated into the background, rendered in sharp detail.
+  - SKY & GROUND: A beautiful, unified, moody twilight sky transitioning into evening, filled with deep blues, cool teals, and soft purple clouds, stretching across the entire background behind both ${randomEgyptLandmark} and ${randomUsaLandmark}. The stone pavement ground is cool and atmospheric, reflecting the teal ambient light and soft distant city lights.
 
-  CHARACTERS & SUBJECTS STYLE (PIXAR 3D CGI REALISM):
-  - CHUCK E. CHEESE MASCOTS (CRITICAL BRAND LOCK): You MUST include the three official characters (Chuck E. Cheese, Helen Henny, Mr. Munch). They MUST be rendered as high-fidelity, cinematic 3D CGI animated feature-film characters (Pixar, Disney, or Unreal Engine 5 level path-traced renders) with realistic, hyper-detailed organic shaders and micro-textures.
-    * Chuck E. Cheese: Ultra-fine, short grey fur made of millions of individually-rendered hair strands that catch the light, large glossy green glass eyes with deep iris patterns, realistic whiskers, and a friendly smile. Wears a detailed purple fabric crewneck shirt with green trim and a yellow-green "C" logo.
-    * Helen Henny: Covered in layered, soft, highly-detailed realistic yellow feathers with visible individual feather shafts and fine barbules. Short orange beak with organic matte texture, stylish blonde feathered hair tied with a purple bow, and expressive blue eyes. Wears a high-quality purple dress.
-    * Mr. Munch: Covered in long, shaggy, fluffy purple fur with realistic organic clumping. Big bulbous yellow nose with a soft-touch matte texture, large glossy green-yellow eyes, and an open happy mouth. Wears an orange fabric t-shirt with a green "M" logo.
-  - CLOTHING & TRANSFORMATION: You MUST ABSOLUTELY ERASE and DISCARD all original clothing from the source image. COMPLETELY REPLACE the subjects' outfits. Every human subject MUST ONLY wear: ${clothingDescription} and blue jeans. Ensure clothing fabric shows a distinct, high-resolution woven PBR textile pattern, detailed stitching on seams, and natural physical folds.
-  - CRITICAL IDENTITY LOCK: Maintain the EXACT facial features, bone structure, and skin tone of ALL persons in the reference image. NO facial morphing or alterations allowed. Each person's face must be human, photorealistic, and 100% identical to the source, perfectly integrated into the volumetric lighting of the scene.
+  CHARACTERS & SUBJECTS STYLE (UNIFIED 3D CGI AESTHETIC):
+  - HUMAN SUBJECT (CINEMATIC 3D CGI STYLIZATION): The human subject MUST be rendered in the exact same high-budget, ultra-detailed 3D CGI aesthetic as the rest of the image (like a hyper-realistic MetaHuman or top-tier CGI feature film character). They should seamlessly blend into the stylized 3D animated world while perfectly retaining their true likeness.
+  - CHUCK E. CHEESE MASCOTS (HIGH-END 3D CGI): You MUST include the three official characters (${characterNames}). They MUST be rendered as high-budget, cinematic 3D CGI animated feature-film characters perfectly integrated into the scene. They must have ultra-detailed, tangible physical materials, incredibly realistic fur/feathers with millions of individual strands, and hyper-detailed PBR clothing textures.
+${descriptionsText}
+  - CLOTHING & TRANSFORMATION (PRESERVE USER'S OUTFIT): You MUST PRESERVE the human subjects' original clothing EXACTLY as it appears in the reference image. Do NOT change, replace, or modify their outfits, styles, colors, fabrics, or garments. Keep the human subjects' original clothing completely intact and unchanged. The Chuck E. Cheese characters MUST wear their respective high-quality custom premium Chuck E. Cheese attire (${attiresText}). Ensure all clothing fabrics show distinct, high-resolution PBR textile patterns, detailed stitching, and realistic physical folds.
+  - CRITICAL EXPRESSION & IDENTITY LOCK: Maintain the EXACT facial features, bone structure, skin tone, and FACIAL EXPRESSION of the human subjects in the reference image. Do NOT force the human to smile if they are not smiling in the reference. Preserve their exact, natural expression. Each person's face must retain 100% identical likeness to the source, perfectly translated into the high-end 3D CGI aesthetic.
 
   LIGHTING & ATMOSPHERE:
   - LIGHTING STYLE: ${randomLighting}
-  - DRAMATIC DUAL-LIGHTING: A warm, intense golden sunset hour light from the left side of the scene casts brilliant amber and gold rim highlights across the left side of the user's hair and the left side of all characters' fur, feathers, and clothes. Cool deep blue twilight and colorful firework explosions from the right cast beautiful blue, purple, and multi-colored rim highlights across their right sides.
-  - MAGICAL LIGHT PATH: A thin, glowing magenta and purple neon energy trail arcing overhead casts a soft ambient glow down onto their hair, shoulders, and heads.
+  - CINEMATIC TEAL & AMBER LIGHTING (HIGH CONTRAST): The lighting MUST be extremely cinematic and high-contrast, using a classic blockbuster 'Teal and Orange' color grading. Use a dramatic, directional cool teal/blue rim light coming from the side/back, contrasting with deep, rich, dark shadows. The cool teal light creates brilliant, glowing rim highlights on the edges of the characters' hair, fur, and clothes. Add a very subtle, soft warm ambient fill light on their faces to preserve natural skin tones. This high-contrast lighting makes the image look like a moody, ultra-premium, high-end cinematic movie still.
 
-  ${IDENTITY_PRESERVATION_GUIDE}
+  ${identityPreservationGuide}
 
   MANDATORY NEGATIVE RULES (DO NOT GENERATE):
   * no cheap foam mascot costume, no cosplay, no humans in animal suits, no theme park actors, no physical mascot performers
   * no flat cartoon, no 2D illustration, no anime style, no cel shading, no low-poly rendering, no plastic-like skin, no vinyl skin
-  * no altered facial structure, no distorted anatomy, no hairstyle changes, no warped eyes
+  * no altered facial structure, no distorted anatomy, no shrunken bodies, no dwarfed or shortened legs, no compressed heights, no disproportionate heads, no deformed limbs, no hairstyle changes, no warped eyes
   * no characters riding the zipline`;
 
   console.log("------------------- GENERATED PROMPT -------------------");
@@ -144,7 +132,7 @@ export const generateHistoricalImage = async (
   ];
 
   const requestConfig: any = {
-    temperature: 0.5,
+    temperature: 0.3,
     // @ts-ignore
     imageConfig: {
       aspectRatio: "2:3",

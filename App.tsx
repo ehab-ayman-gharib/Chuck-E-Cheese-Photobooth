@@ -1,19 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { AppScreen, EraData, FaceDetectionResult, EraId } from './types';
+import { AppScreen, EraData, FaceDetectionResult } from './types';
 import { CameraCapture } from './components/CameraCapture';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ResultScreen } from './components/ResultScreen';
 import { CapturePreview } from './components/CapturePreview';
 import { generateHistoricalImage } from './services/geminiService';
-import { ScreenSaver } from './components/ScreenSaver';
-import { ERAS } from './constants';
-
-//const { ipcRenderer } = window.require('electron');
-const CLOUDINARY_CLOUD_NAME = "dniredeim";
-const IDLE_TIMEOUT = 30000; // 30 seconds
+import { Splash } from './components/Splash';
 
 const App: React.FC = () => {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.SCREEN_SAVER);
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.SPLASH);
   const [selectedEra, setSelectedEra] = useState<EraData | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -21,8 +16,6 @@ const App: React.FC = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState<string>('');
   const [faceDetectionResult, setFaceDetectionResult] = useState<FaceDetectionResult | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleCapture = (imageSrc: string, faceData: FaceDetectionResult) => {
     setCapturedImage(imageSrc);
@@ -59,7 +52,7 @@ const App: React.FC = () => {
         console.error(`Attempt ${attempts} failed:`, error);
         if (attempts >= maxAttempts) {
           handleRestart();
-          setCurrentScreen(AppScreen.SCREEN_SAVER);
+          setCurrentScreen(AppScreen.SPLASH);
         } else {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
@@ -75,99 +68,14 @@ const App: React.FC = () => {
     setFaceDetectionResult(null);
 
     setSessionKey(prev => prev + 1);
-    setCurrentScreen(AppScreen.SCREEN_SAVER);
+    setCurrentScreen(AppScreen.SPLASH);
   };
 
   const handleUpdateImage = (newImage: string) => {
     setGeneratedImage(newImage);
   };
 
-  /**
-   * SCREEN SAVER & IDLE LOGIC
-   */
-  const resetIdleTimer = useCallback(() => {
-    localStorage.setItem('last_activity', Date.now().toString());
-  }, []);
-
-  React.useEffect(() => {
-    const checkIdle = () => {
-      // Only count down for screensaver if NOT already on the ScreenSaver or Result Screen
-      if (currentScreen === AppScreen.SCREEN_SAVER || currentScreen === AppScreen.RESULT) {
-        localStorage.setItem('last_activity', Date.now().toString());
-        return;
-      }
-
-      const lastActivity = parseInt(localStorage.getItem('last_activity') || '0');
-      const now = Date.now();
-
-      if (now - lastActivity > IDLE_TIMEOUT) {
-        console.log('[Idle] Timeout reached. Starting Screen Saver...');
-        handleRestart(); // Reset state and go to ScreenSaver
-      }
-    };
-
-    const interval = setInterval(checkIdle, 1000);
-    return () => clearInterval(interval);
-  }, [currentScreen]);
-
-  // Cloudinary Sync (Featured Images) - Runs on app start and every time we return to ScreenSaver
-  React.useEffect(() => {
-    const syncFeaturedImages = async () => {
-      try {
-        console.log('[Cloudinary Sync] Initializing sync...');
-        const response = await fetch(`https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/Featured.json`);
-
-        if (response.status === 404) {
-          console.log('[Cloudinary Sync] No featured images found on cloud. Clearing local cache...');
-          //   await ipcRenderer.invoke('sync-featured-images', []);
-          return;
-        }
-
-        if (!response.ok) {
-          console.warn(`[Cloudinary Sync] API returned error: ${response.status}`);
-          return;
-        }
-
-        const data = await response.json();
-        const allFeaturedImages = data.resources || [];
-
-        // Filter: Only include images that belong to this project's folder
-        const projectFolder = 'chuck-e-cheese-photobooth';
-        const cloudinaryImages = allFeaturedImages.filter((img: any) =>
-          img.public_id.startsWith(`${projectFolder}/`)
-        );
-
-        console.log(`[Cloudinary Sync] Found ${allFeaturedImages.length} total featured images. ${cloudinaryImages.length} belong to this project.`);
-
-        setIsSyncing(true);
-        const imageData = cloudinaryImages.map((img: any) => ({
-          id: img.public_id,
-          url: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v${img.version}/${img.public_id}.${img.format}`
-        }));
-
-        //   const result = await ipcRenderer.invoke('sync-featured-images', imageData);
-        //   console.log('[Cloudinary Sync] Process complete:', result);
-        //   setIsSyncing(false);
-      } catch (err: any) {
-        console.warn('[Cloudinary Sync] Failed:', err.message);
-        setIsSyncing(false);
-      }
-    };
-
-    // Trigger sync if we are on ScreenSaver OR if it's the initial load
-    syncFeaturedImages();
-  }, [currentScreen]);
-
-  // Monitor interactions
-  React.useEffect(() => {
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    const handler = () => resetIdleTimer();
-    events.forEach(event => window.addEventListener(event, handler));
-    return () => events.forEach(event => window.removeEventListener(event, handler));
-  }, [resetIdleTimer]);
-
   const handleGlobalClick = () => {
-    resetIdleTimer();
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => { });
     }
@@ -175,9 +83,9 @@ const App: React.FC = () => {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case AppScreen.SCREEN_SAVER:
+      case AppScreen.SPLASH:
         return (
-          <ScreenSaver
+          <Splash
             onDismiss={(era) => {
               setSelectedEra(era);
               setCurrentScreen(AppScreen.CAMERA);
@@ -186,7 +94,7 @@ const App: React.FC = () => {
         );
 
       case AppScreen.CAMERA:
-        return <CameraCapture era={selectedEra} onCapture={handleCapture} onBack={() => setCurrentScreen(AppScreen.SCREEN_SAVER)} />;
+        return <CameraCapture era={selectedEra} onCapture={handleCapture} onBack={() => setCurrentScreen(AppScreen.SPLASH)} />;
 
       case AppScreen.PREVIEW:
         return capturedImage ? (
@@ -218,7 +126,7 @@ const App: React.FC = () => {
 
       default:
         return (
-          <ScreenSaver
+          <Splash
             onDismiss={(era) => {
               setSelectedEra(era);
               setCurrentScreen(AppScreen.CAMERA);

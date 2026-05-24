@@ -1,5 +1,4 @@
 export enum AppScreen {
-  SCREEN_SAVER = 'SCREEN_SAVER',
   SPLASH = 'SPLASH',
   ERA_SELECTION = 'ERA_SELECTION',
   CAMERA = 'CAMERA',
@@ -29,4 +28,11 @@ export interface FaceDetectionResult {
   femaleCount: number;
   childCount: number;
   totalPeople: number;
+}
+
+export interface Character {
+  name: string;
+  description: string;
+  pose: string;
+  attire: string;
 }
